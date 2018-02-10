@@ -18,9 +18,17 @@ import (
 	"log"
 	"testing"
 
+	"github.com/casbin/casbin"
 	"github.com/casbin/casbin/rbac"
 	"github.com/casbin/casbin/util"
 )
+
+func testEnforce(t *testing.T, e *casbin.Enforcer, sub string, obj interface{}, act string, res bool) {
+	t.Helper()
+	if e.Enforce(sub, obj, act) != res {
+		t.Errorf("%s, %v, %s: %t, supposed to be %t", sub, obj, act, !res, res)
+	}
+}
 
 func testRole(t *testing.T, rm rbac.RoleManager, name1 string, name2 string, res bool) {
 	t.Helper()
@@ -73,4 +81,39 @@ func TestRole(t *testing.T) {
 
 	testPrintUsers(t, rm, "Everyone", []string{"alice@test.com", "bob@test.com"})
 	testPrintUsers(t, rm, "Admin", []string{"bob@test.com"})
+}
+
+func TestEnforcer(t *testing.T) {
+	// This role manager dose not rely on Casbin policy. So we should not
+	// specify grouping policy ("g" policy rules) in the .csv file.
+	e := casbin.NewEnforcer("examples/rbac_model.conf", "examples/rbac_policy.csv")
+
+	// Use our role manager.
+	rm := NewRoleManager("dev-000000", "your_api_token", false)
+	e.SetRoleManager(rm)
+
+	// If our role manager relies on Casbin policy (like reading "g"
+	// policy rules), then we have to set the role manager before loading
+	// policy.
+	//
+	// Otherwise, we can set the role manager at any time, because role
+	// manager has nothing to do with the adapter.
+	e.LoadPolicy()
+
+	// Current role inheritance tree:
+	//           Everyone     Admin
+	//         /          \  /
+	// alice@test.com    bob@test.com
+
+	// Note: you need to set this role inheritance in your Okta Admin portal
+	// before running this test.
+
+	testEnforce(t, e, "alice@test.com", "data1", "read", true)
+	testEnforce(t, e, "alice@test.com", "data1", "write", false)
+	testEnforce(t, e, "alice@test.com", "data2", "read", false)
+	testEnforce(t, e, "alice@test.com", "data2", "write", true)
+	testEnforce(t, e, "bob@test.com", "data1", "read", true)
+	testEnforce(t, e, "bob@test.com", "data1", "write", false)
+	testEnforce(t, e, "bob@test.com", "data2", "read", true)
+	testEnforce(t, e, "bob@test.com", "data2", "write", true)
 }
