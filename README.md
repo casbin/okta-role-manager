@@ -1,4 +1,4 @@
-Okta Role Manager [![Godoc](https://godoc.org/github.com/casbin/okta-role-manager?status.svg)](https://godoc.org/github.com/casbin/okta-role-manager)
+Okta Role Manager [![Build Status](https://travis-ci.org/casbin/okta-role-manager.svg?branch=master)](https://travis-ci.org/casbin/okta-role-manager) [![Coverage Status](https://coveralls.io/repos/github/casbin/okta-role-manager/badge.svg?branch=master)](https://coveralls.io/github/casbin/okta-role-manager?branch=master) [![Godoc](https://godoc.org/github.com/casbin/okta-role-manager?status.svg)](https://godoc.org/github.com/casbin/okta-role-manager)
 ====
 
 Okta Role Manager is the [Okta](https://www.okta.com/) role manager for [Casbin](https://github.com/casbin/casbin). With this library, Casbin can load role hierarchy (user-role mapping) from Okta or save role hierarchy to it (NOT Implemented).
