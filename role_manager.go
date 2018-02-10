@@ -29,8 +29,13 @@ type RoleManager struct {
 	client                *okta.Client
 }
 
-// NewRoleManager is the constructor for creating an instance of the
-// default RoleManager implementation.
+// NewRoleManager is the constructor of an Okta RoleManager instance.
+// orgName is your organization name.
+// apiToken is the token you created in the Admin portal.
+// For example, if your domain name is like: dev-123456.oktapreview.com,
+// then your orgName is dev-123456, isProductionOrPreview is false.
+// If your domain name is like: company_name.okta.com, then your orgName
+// is company_name, isProductionOrPreview is true.
 func NewRoleManager(orgName string, apiToken string, isProductionOrPreview bool) rbac.RoleManager {
 	rm := RoleManager{}
 	rm.orgName = orgName
