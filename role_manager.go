@@ -18,7 +18,7 @@ import (
 	"errors"
 
 	"github.com/casbin/casbin/rbac"
-	"github.com/casbin/casbin/util"
+  "github.com/casbin/casbin/log"
 	"github.com/chrismalek/oktasdk-go/okta"
 )
 
@@ -43,7 +43,7 @@ func NewRoleManager(orgName string, apiToken string, isProductionOrPreview bool)
 	rm.isProductionOrPreview = isProductionOrPreview
 
 	rm.client = okta.NewClient(nil, orgName, apiToken, isProductionOrPreview)
-	util.LogPrintf("Client Base URL: %v\n\n", rm.client.BaseURL)
+	log.LogPrintf("Client Base URL: %v\n\n", rm.client.BaseURL)
 
 	return &rm
 }
