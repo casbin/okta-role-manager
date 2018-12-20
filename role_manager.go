@@ -17,8 +17,8 @@ package oktarolemanager
 import (
 	"errors"
 
+	"github.com/casbin/casbin/log"
 	"github.com/casbin/casbin/rbac"
-  "github.com/casbin/casbin/log"
 	"github.com/chrismalek/oktasdk-go/okta"
 )
 
