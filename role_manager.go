@@ -89,7 +89,7 @@ func (rm *RoleManager) getOktaUserGroups(user *okta.User) ([]string, error) {
 		return nil, err
 	}
 
-	for _,  group := range user.Groups {
+	for _, group := range user.Groups {
 		res = append(res, group.Profile.Name)
 	}
 	return res, nil
@@ -126,7 +126,7 @@ func (rm *RoleManager) getOktaGroupUsers(group *okta.Group) ([]string, error) {
 		return nil, err
 	}
 
-	for _,  user := range users {
+	for _, user := range users {
 		if user.Status == "ACTIVE" {
 			res = append(res, user.Profile.Login)
 		}
@@ -203,5 +203,10 @@ func (rm *RoleManager) GetUsers(name string, domain ...string) ([]string, error)
 
 // PrintRoles prints all the roles to log.
 func (rm *RoleManager) PrintRoles() error {
+	return errors.New("not implemented")
+}
+
+// BuildRelationship is deprecated.
+func (rm *RoleManager) BuildRelationship(name1, name2 string, domain ...string) error {
 	return errors.New("not implemented")
 }
