@@ -17,7 +17,7 @@ package oktarolemanager
 import (
 	"errors"
 
-	"github.com/casbin/casbin/log"
+	"github.com/casbin/casbin/v2/log"
 	"github.com/casbin/casbin/v2/rbac"
 	"github.com/chrismalek/oktasdk-go/okta"
 )
@@ -43,12 +43,12 @@ func NewRoleManager(orgName string, apiToken string, isProductionOrPreview bool)
 	rm.isProductionOrPreview = isProductionOrPreview
 
 	rm.client = okta.NewClient(nil, orgName, apiToken, isProductionOrPreview)
-	log.LogPrintf("Client Base URL: %v\n\n", rm.client.BaseURL)
+	// log.LogPrintf("Client Base URL: %v\n\n", rm.client.BaseURL)
 
-	return &rm
+	return rm
 }
 
-//func (rm *RoleManager) listUsers() {
+//func (rm RoleManager) listUsers() {
 //	userFilter := &okta.UserListFilterOptions{}
 //	userFilter.GetAllPages = true
 //	userFilter.StatusEqualTo = okta.UserStatusActive
@@ -62,7 +62,7 @@ func NewRoleManager(orgName string, apiToken string, isProductionOrPreview bool)
 //	util.LogPrintf("len(all_users) = %v\n", len(allUsers))
 //}
 
-func (rm *RoleManager) getOktaUserByLogin(login string) (*okta.User, error) {
+func (rm RoleManager) getOktaUserByLogin(login string) (*okta.User, error) {
 	userFilter := &okta.UserListFilterOptions{}
 	userFilter.LoginEqualTo = login
 
@@ -81,7 +81,7 @@ func (rm *RoleManager) getOktaUserByLogin(login string) (*okta.User, error) {
 	return &allUsers[0], nil
 }
 
-func (rm *RoleManager) getOktaUserGroups(user *okta.User) ([]string, error) {
+func (rm RoleManager) getOktaUserGroups(user *okta.User) ([]string, error) {
 	res := []string{}
 
 	_, err := rm.client.Users.PopulateGroups(user)
@@ -95,7 +95,7 @@ func (rm *RoleManager) getOktaUserGroups(user *okta.User) ([]string, error) {
 	return res, nil
 }
 
-func (rm *RoleManager) getOktaGroupByName(name string) (*okta.Group, error) {
+func (rm RoleManager) getOktaGroupByName(name string) (*okta.Group, error) {
 	groupFilter := &okta.GroupFilterOptions{}
 	groupFilter.GetAllPages = true
 	groupFilter.NameStartsWith = name
@@ -115,7 +115,7 @@ func (rm *RoleManager) getOktaGroupByName(name string) (*okta.Group, error) {
 	return &allGroups[0], nil
 }
 
-func (rm *RoleManager) getOktaGroupUsers(group *okta.Group) ([]string, error) {
+func (rm RoleManager) getOktaGroupUsers(group *okta.Group) ([]string, error) {
 	res := []string{}
 
 	groupUserFilter := new(okta.GroupUserFilterOptions)
@@ -135,25 +135,25 @@ func (rm *RoleManager) getOktaGroupUsers(group *okta.Group) ([]string, error) {
 }
 
 // Clear clears all stored data and resets the role manager to the initial state.
-func (rm *RoleManager) Clear() error {
+func (rm RoleManager) Clear() error {
 	return nil
 }
 
 // AddLink adds the inheritance link between role: name1 and role: name2.
 // domain is not used.
-func (rm *RoleManager) AddLink(name1 string, name2 string, domain ...string) error {
+func (rm RoleManager) AddLink(name1 string, name2 string, domain ...string) error {
 	return errors.New("not implemented")
 }
 
 // DeleteLink deletes the inheritance link between role: name1 and role: name2.
 // domain is not used.
-func (rm *RoleManager) DeleteLink(name1 string, name2 string, domain ...string) error {
+func (rm RoleManager) DeleteLink(name1 string, name2 string, domain ...string) error {
 	return errors.New("not implemented")
 }
 
 // HasLink determines whether role: name1 inherits role: name2.
 // domain is not used.
-func (rm *RoleManager) HasLink(name1 string, name2 string, domain ...string) (bool, error) {
+func (rm RoleManager) HasLink(name1 string, name2 string, domain ...string) (bool, error) {
 	if len(domain) >= 1 {
 		return false, errors.New("error: domain should not be used")
 	}
@@ -173,7 +173,7 @@ func (rm *RoleManager) HasLink(name1 string, name2 string, domain ...string) (bo
 
 // GetRoles gets the roles that a subject inherits.
 // domain is not used.
-func (rm *RoleManager) GetRoles(name string, domain ...string) ([]string, error) {
+func (rm RoleManager) GetRoles(name string, domain ...string) ([]string, error) {
 	if len(domain) >= 1 {
 		return nil, errors.New("error: domain should not be used")
 	}
@@ -188,7 +188,7 @@ func (rm *RoleManager) GetRoles(name string, domain ...string) ([]string, error)
 
 // GetUsers gets the users that inherits a subject.
 // domain is not used.
-func (rm *RoleManager) GetUsers(name string, domain ...string) ([]string, error) {
+func (rm RoleManager) GetUsers(name string, domain ...string) ([]string, error) {
 	if len(domain) >= 1 {
 		return nil, errors.New("error: domain should not be used")
 	}
@@ -202,11 +202,23 @@ func (rm *RoleManager) GetUsers(name string, domain ...string) ([]string, error)
 }
 
 // PrintRoles prints all the roles to log.
-func (rm *RoleManager) PrintRoles() error {
+func (rm RoleManager) PrintRoles() error {
 	return errors.New("not implemented")
 }
 
 // BuildRelationship is deprecated.
-func (rm *RoleManager) BuildRelationship(name1, name2 string, domain ...string) error {
+func (rm RoleManager) BuildRelationship(name1, name2 string, domain ...string) error {
 	return errors.New("not implemented")
+}
+
+func (rm RoleManager) GetAllDomains() ([]string, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (rm RoleManager) GetDomains(name string) ([]string, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (rm RoleManager) SetLogger(logger log.Logger) {
+	return
 }
