@@ -18,14 +18,18 @@ import (
 	"log"
 	"testing"
 
-	"github.com/casbin/casbin"
-	"github.com/casbin/casbin/rbac"
-	"github.com/casbin/casbin/util"
+	"github.com/casbin/casbin/v2"
+	"github.com/casbin/casbin/v2/rbac"
+	"github.com/casbin/casbin/v2/util"
 )
 
 func testEnforce(t *testing.T, e *casbin.Enforcer, sub string, obj interface{}, act string, res bool) {
 	t.Helper()
-	if e.Enforce(sub, obj, act) != res {
+	r, err := e.Enforce(sub, obj, act)
+	if err != nil {
+		t.Errorf("%s, %v, %s: error is %s, supposed to be nil", sub, obj, act, err.Error())
+	}
+	if r != res {
 		t.Errorf("%s, %v, %s: %t, supposed to be %t", sub, obj, act, !res, res)
 	}
 }
@@ -86,7 +90,10 @@ func TestRole(t *testing.T) {
 func TestEnforcer(t *testing.T) {
 	// This role manager dose not rely on Casbin policy. So we should not
 	// specify grouping policy ("g" policy rules) in the .csv file.
-	e := casbin.NewEnforcer("examples/rbac_model.conf", "examples/rbac_policy.csv")
+	e, err := casbin.NewEnforcer("examples/rbac_model.conf", "examples/rbac_policy.csv")
+	if err != nil {
+		t.Errorf("NewEnforcer() failed: %s", err.Error())
+	}
 
 	// Use our role manager.
 	rm := NewRoleManager("dev-000000", "your_api_token", false)

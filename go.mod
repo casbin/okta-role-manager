@@ -3,7 +3,6 @@ module github.com/casbin/okta-role-manager
 go 1.17
 
 require (
-	github.com/casbin/casbin v1.9.1
 	github.com/casbin/casbin/v2 v2.56.0
 	github.com/chrismalek/oktasdk-go v0.0.0-20181212195951-3430665dfaa0
 )
