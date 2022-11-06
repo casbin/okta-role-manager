@@ -15,93 +15,64 @@
 package oktarolemanager
 
 import (
+	"context"
 	"errors"
+	"fmt"
 
 	"github.com/casbin/casbin/v2/log"
 	"github.com/casbin/casbin/v2/rbac"
-	"github.com/chrismalek/oktasdk-go/okta"
+	"github.com/okta/okta-sdk-golang/v2/okta"
+	"github.com/okta/okta-sdk-golang/v2/okta/query"
 )
 
 type RoleManager struct {
-	orgName               string
-	apiToken              string
-	isProductionOrPreview bool
-	client                *okta.Client
+	client *okta.Client
 }
 
 // NewRoleManager is the constructor of an Okta RoleManager instance.
-// orgName is your organization name.
+// oktaDomain is the domain for your organization on Okta.
+// If https://dev-123456.okta.com is your org URL, then dev-17237792.okta.com is oktaDomain.
 // apiToken is the token you created in the Admin portal.
-// For example, if your domain name is like: dev-123456.oktapreview.com,
-// then your orgName is dev-123456, isProductionOrPreview is false.
-// If your domain name is like: company_name.okta.com, then your orgName
-// is company_name, isProductionOrPreview is true.
-func NewRoleManager(orgName string, apiToken string, isProductionOrPreview bool) rbac.RoleManager {
-	rm := RoleManager{}
-	rm.orgName = orgName
-	rm.apiToken = apiToken
-	rm.isProductionOrPreview = isProductionOrPreview
-
-	rm.client = okta.NewClient(nil, orgName, apiToken, isProductionOrPreview)
-	// log.LogPrintf("Client Base URL: %v\n\n", rm.client.BaseURL)
-
-	return rm
+func NewRoleManager(oktaDomain string, apiToken string, isProduction bool) rbac.RoleManager {
+	_, client, err := okta.NewClient(
+		context.TODO(),
+		okta.WithOrgUrl(fmt.Sprintf("https://%s", oktaDomain)),
+		okta.WithToken(apiToken),
+	)
+	if err != nil {
+		panic(err)
+	}
+	return RoleManager{client}
 }
 
-//func (rm RoleManager) listUsers() {
-//	userFilter := &okta.UserListFilterOptions{}
-//	userFilter.GetAllPages = true
-//	userFilter.StatusEqualTo = okta.UserStatusActive
-//
-//	allUsers, response, err := rm.client.Users.ListWithFilter(userFilter)
-//
-//	if err != nil {
-//		util.LogPrintf("Response Error %+v\n\t URL used:%v\n", err, response.Request.URL.String())
-//	}
-//
-//	util.LogPrintf("len(all_users) = %v\n", len(allUsers))
-//}
-
-func (rm RoleManager) getOktaUserByLogin(login string) (*okta.User, error) {
-	userFilter := &okta.UserListFilterOptions{}
-	userFilter.LoginEqualTo = login
-
-	allUsers, _, err := rm.client.Users.ListWithFilter(userFilter)
-
+func (rm RoleManager) getOktaUserByLogin(ctx context.Context, login string) (*okta.User, error) {
+	user, _, err := rm.client.User.GetUser(ctx, login)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(allUsers) == 0 {
+	if user == nil {
 		return nil, errors.New("error: Okta user not found")
-	} else if len(allUsers) > 1 {
-		return nil, errors.New("error: multiple Okta users with the same login found")
 	}
-
-	return &allUsers[0], nil
+	return user, nil
 }
 
-func (rm RoleManager) getOktaUserGroups(user *okta.User) ([]string, error) {
+func (rm RoleManager) getOktaUserGroups(ctx context.Context, user *okta.User) ([]string, error) {
 	res := []string{}
 
-	_, err := rm.client.Users.PopulateGroups(user)
+	groups, _, err := rm.client.User.ListUserGroups(ctx, user.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, group := range user.Groups {
+	for _, group := range groups {
 		res = append(res, group.Profile.Name)
 	}
 	return res, nil
 }
 
-func (rm RoleManager) getOktaGroupByName(name string) (*okta.Group, error) {
-	groupFilter := &okta.GroupFilterOptions{}
-	groupFilter.GetAllPages = true
-	groupFilter.NameStartsWith = name
-
-	allGroups, _, err := rm.client.Groups.ListWithFilter(groupFilter)
-
+func (rm RoleManager) getOktaGroupByName(ctx context.Context, name string) (*okta.Group, error) {
+	allGroups, _, err := rm.client.Group.ListGroups(ctx, query.NewQueryParams(query.WithQ(name)))
 	if err != nil {
 		return nil, err
 	}
@@ -112,24 +83,20 @@ func (rm RoleManager) getOktaGroupByName(name string) (*okta.Group, error) {
 		return nil, errors.New("error: multiple Okta groups with the same name found")
 	}
 
-	return &allGroups[0], nil
+	return allGroups[0], nil
 }
 
-func (rm RoleManager) getOktaGroupUsers(group *okta.Group) ([]string, error) {
+func (rm RoleManager) getOktaGroupUsers(ctx context.Context, group *okta.Group) ([]string, error) {
 	res := []string{}
 
-	groupUserFilter := new(okta.GroupUserFilterOptions)
-	groupUserFilter.GetAllPages = true
-
-	users, _, err := rm.client.Groups.GetUsers(group.ID, groupUserFilter)
+	filter := query.NewQueryParams(query.WithFilter("status eq \"ACTIVE\""))
+	users, _, err := rm.client.Group.ListGroupUsers(ctx, group.Id, filter)
 	if err != nil {
 		return nil, err
 	}
 
 	for _, user := range users {
-		if user.Status == "ACTIVE" {
-			res = append(res, user.Profile.Login)
-		}
+		res = append(res, (*user.Profile)["login"].(string))
 	}
 	return res, nil
 }
@@ -178,12 +145,12 @@ func (rm RoleManager) GetRoles(name string, domain ...string) ([]string, error) 
 		return nil, errors.New("error: domain should not be used")
 	}
 
-	user, err := rm.getOktaUserByLogin(name)
+	user, err := rm.getOktaUserByLogin(context.Background(), name)
 	if err != nil {
 		return nil, err
 	}
 
-	return rm.getOktaUserGroups(user)
+	return rm.getOktaUserGroups(context.Background(), user)
 }
 
 // GetUsers gets the users that inherits a subject.
@@ -193,12 +160,12 @@ func (rm RoleManager) GetUsers(name string, domain ...string) ([]string, error) 
 		return nil, errors.New("error: domain should not be used")
 	}
 
-	group, err := rm.getOktaGroupByName(name)
+	group, err := rm.getOktaGroupByName(context.Background(), name)
 	if err != nil {
 		return nil, err
 	}
 
-	return rm.getOktaGroupUsers(group)
+	return rm.getOktaGroupUsers(context.Background(), group)
 }
 
 // PrintRoles prints all the roles to log.
