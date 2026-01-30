@@ -189,3 +189,33 @@ func (rm RoleManager) GetDomains(name string) ([]string, error) {
 func (rm RoleManager) SetLogger(logger log.Logger) {
 	return
 }
+
+// Match matches the domain with the pattern.
+func (rm RoleManager) Match(str string, pattern string) bool {
+	return str == pattern
+}
+
+// AddMatchingFunc adds the matching function.
+func (rm RoleManager) AddMatchingFunc(name string, fn rbac.MatchingFunc) {
+	// Not implemented for Okta role manager
+}
+
+// AddDomainMatchingFunc adds the domain matching function.
+func (rm RoleManager) AddDomainMatchingFunc(name string, fn rbac.MatchingFunc) {
+	// Not implemented for Okta role manager
+}
+
+// GetImplicitRoles gets the implicit roles that a user inherits.
+func (rm RoleManager) GetImplicitRoles(name string, domain ...string) ([]string, error) {
+	return rm.GetRoles(name, domain...)
+}
+
+// GetImplicitUsers gets the implicit users that inherits a role.
+func (rm RoleManager) GetImplicitUsers(name string, domain ...string) ([]string, error) {
+	return rm.GetUsers(name, domain...)
+}
+
+// DeleteDomain deletes all data of a domain in the role manager.
+func (rm RoleManager) DeleteDomain(domain string) error {
+	return errors.New("not implemented")
+}
