@@ -1,5 +1,13 @@
-Okta Role Manager [![Build Status](https://travis-ci.org/casbin/okta-role-manager.svg?branch=master)](https://travis-ci.org/casbin/okta-role-manager) [![Coverage Status](https://coveralls.io/repos/github/casbin/okta-role-manager/badge.svg?branch=master)](https://coveralls.io/github/casbin/okta-role-manager?branch=master) [![Godoc](https://godoc.org/github.com/casbin/okta-role-manager?status.svg)](https://godoc.org/github.com/casbin/okta-role-manager)
+Okta Role Manager
 ====
+
+[![Go Report Card](https://goreportcard.com/badge/github.com/casbin/okta-role-manager)](https://goreportcard.com/report/github.com/casbin/okta-role-manager)
+[![CI](https://github.com/casbin/okta-role-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/casbin/okta-role-manager/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/casbin/okta-role-manager/badge.svg?branch=master)](https://coveralls.io/github/casbin/okta-role-manager?branch=master)
+[![Godoc](https://godoc.org/github.com/casbin/okta-role-manager?status.svg)](https://godoc.org/github.com/casbin/okta-role-manager)
+[![Release](https://img.shields.io/github/release/casbin/okta-role-manager.svg)](https://github.com/casbin/okta-role-manager/releases/latest)
+[![Discord](https://img.shields.io/discord/1022748306096537660?logo=discord&label=discord&color=5865F2)](https://discord.gg/S5UjpzGZjN)
+[![Sourcegraph](https://sourcegraph.com/github.com/casbin/okta-role-manager/-/badge.svg)](https://sourcegraph.com/github.com/casbin/okta-role-manager?badge)
 
 Okta Role Manager is the [Okta](https://www.okta.com/) role manager for [Casbin](https://github.com/casbin/casbin). With this library, Casbin can load role hierarchy (user-role mapping) from Okta or save role hierarchy to it (NOT Implemented).
 
@@ -13,14 +21,14 @@ Okta Role Manager is the [Okta](https://www.okta.com/) role manager for [Casbin]
 package main
 
 import (
-	"github.com/casbin/casbin"
-	"github.com/casbin/okta-role-manager"
+	"github.com/casbin/casbin/v2"
+	oktarolemanager "github.com/casbin/okta-role-manager"
 )
 
 func main() {
-	// This role manager dose not rely on Casbin policy. So we should not
+	// This role manager does not rely on Casbin policy. So we should not
 	// specify grouping policy ("g" policy rules) in the .csv file.
-	e := casbin.NewEnforcer("examples/rbac_model.conf", "examples/rbac_policy.csv")
+	e, _ := casbin.NewEnforcer("examples/rbac_model.conf", "examples/rbac_policy.csv")
 
 	// Use our role manager.
 	// orgName is your organization name.
